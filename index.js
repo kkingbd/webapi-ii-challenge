@@ -32,35 +32,32 @@ server.get("/api/posts/:id", (req, res) => {
 });
 
 server.post("/api/posts", (req, res) => {
-	const post = req.body;
-	db.insert(post)
-		.then(result => {
-			if (post) {
-                db
-                    .findById(result.id)
-					.then(post => {
-						res.status(201).json(post);
-					})
-					.catch(err =>
-						res.status(500).json({
-							errorMessage: "The POST findById failed",
-							error: err,
-						})
-					);
-			} else {
-				res.status(400).json({
-					errorMessage:
-						"Please provide title and contents for the post.",
-				});
-			}
-		})
-		.catch(err =>
-			res.status(500).json({
-				error:
-					"There was an error while saving the post to the database",
-			})
-		);
-});
+    const newPost = req.body; // reads information from the body of the request
+    console.log(newPost);
+  
+    if (!newPost.title || !newPost.contents) {
+      return res
+        .status(400)
+        .json({
+          errorMessage: "Please provide title and contents for the post."
+        });
+    }
+    db.insert(newPost) // returns a promise, so we need to use .then
+    .then(result => {
+      db.findById(result.id)
+        .then(post => {
+              res.status(201).json(post);
+              console.log('This is a post', post);
+        })
+        .catch(err =>
+          res.status(500).json({ message: "The post with the specified ID does not exist.", error: err })
+        );
+    })
+    .catch(err =>
+      res.status(500).json({ error: "There was an error while saving the post to the database"  })
+    );
+  });
+  
 server.delete("/api/posts/:id", (req, res) => {
 	const id = req.params.id;
 	db.findById(id)
